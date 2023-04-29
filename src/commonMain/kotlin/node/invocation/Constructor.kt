@@ -54,18 +54,22 @@ class Constructor(
         symbolTable.resolvingType = ResolvingMode.FUNCTION
         type.setProperty("this", type)
         for (arg in children.subList(1, children.size)) {
-            if (arg !is Assignment) {
+            require(arg is Assignment) {
                 throw PositionalException("Expected assignment", symbolTable.getFileTable().filePath, arg)
             }
-            if (arg.left !is Identifier) {
+            require(arg.left is Identifier) {
                 throw PositionalException("Expected property name", symbolTable.getFileTable().filePath, arg)
             }
-            type.setProperty(arg.left.value, arg.right.evaluate(symbolTable).toProperty(arg.left))
-            val prop = type.getPropertyOrNull(arg.left.value)!!
-            if (prop is Type)
+            val leftValue = arg.left.value
+            val property = arg.right.evaluate(symbolTable).toProperty(arg.left)
+            type.setProperty(leftValue, property)
+            val prop = type.getPropertyOrNull(leftValue)
+            if (prop is Type) {
                 prop.setProperty("parent", type)
+            }
             type.removeAssignment(arg.left)
         }
         symbolTable.resolvingType = resolvingMode
     }
+
 }

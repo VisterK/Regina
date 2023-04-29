@@ -25,7 +25,6 @@ import utils.Utils.toVariable
  *
  * Classes are mutable, meaning assigning same instance to different variables `a` and b` will change `a` if `b` is changed.
  */
-// @Serializable
 open class Type(
     val name: String,
     val assignments: MutableSet<Assignment>,
@@ -155,15 +154,6 @@ open class Type(
             fileTable.filePath.split("/").last().first()
         } else fileTable.filePath.first()
         val res = StringBuilder("$name-$fileLetter${fileTable.index}$index")
-//        if (supertype != null) {
-//            res.append(":")
-//            if (supertype!!.fileName != fileName)
-//                res.append("${supertype!!.fileName}.")
-//            res.append(supertype!!.name)
-//        }
-//        if (exported != null)
-//            res.append("->$exported")
-//        res.append("{parent:${parent?.name ?: "-"}, ${properties.filter { it.key != "parent" }}, $assignments}")
         return res.toString()
     }
 
@@ -200,12 +190,6 @@ open class Type(
     }
 
     override fun equals(other: Any?): Boolean = this === other
-
-    // StackOverFlow on js test if it's uncommented
-//    override fun hashCode(): Int {
-//        println("Hash")
-//        return super.hashCode()
-//    }
     fun callAfter(symbolTable: SymbolTable, all: Boolean = false) {
         val afterNode = Call(Utils.parseOneNode(if (all) "afterAll()" else "after()") as Invocation)
         val afterResolving = getFunctionOrNull(afterNode)

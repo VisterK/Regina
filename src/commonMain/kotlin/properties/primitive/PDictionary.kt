@@ -44,23 +44,24 @@ class PDictionary(value: MutableMap<out Any, out Variable>, var id: Int) :
     override fun hashCode(): Int = getPValue().hashCode()
 
     override fun toString(): String {
-        if (getPValue().isEmpty()) {
-            return "{}"
-        }
+        val valueMap = getPValue()
+        if (valueMap.isEmpty()) return "{}"
+
         val res = StringBuilder("{")
-        for ((key, value) in getPValue()) {
-            if (key == this) {
-                res.append("this")
-            } else res.append(key)
+        for ((key, value) in valueMap) {
+            res.append(if (key == this) "this" else key)
             res.append("=")
             res.append(if (value == this) "this" else value)
             res.append(", ")
         }
-        res.deleteAt(res.lastIndex)
-        res.deleteAt(res.lastIndex)
+
+        // Remove the trailing comma and space
+        res.setLength(res.length - 2)
         res.append("}")
+
         return res.toString()
     }
+
 
     override fun toDebugClass(references: References, copying: Boolean): Pair<String, Any> {
         val id = getDebugId()

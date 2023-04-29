@@ -15,7 +15,6 @@ import properties.RFunction
 import properties.Type
 import table.SymbolTable.Companion.globalFile
 
-// @Serializable
 class FileTable(
     val filePath: String,
     val index: Int
@@ -34,7 +33,6 @@ class FileTable(
         val name = node.left.value
 
         val (assignments, functions) = createAssignmentsAndFunctions(node.children[2])
-        // copied types get index 0
         val added = Type(name, assignments, this, 0)
         added.functions.addAll(functions)
         if (types.find { it.name == name } != null)
@@ -179,7 +177,7 @@ class FileTable(
             }
         }
         return when (suitable.size) {
-            0 -> this // if function is in class //throw PositionalException("File with `${token.value}` not found", token)
+            0 -> this
             1 -> suitable.first()
             else -> throw PositionalException("`$node` is found in files: $suitable. Specify file.", filePath, node)
         }

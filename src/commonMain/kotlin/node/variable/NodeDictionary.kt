@@ -10,10 +10,6 @@ class NodeDictionary(node: Node) : Node(
     node.position,
     node.children
 ) {
-//    init {
-//        this.children.clear()
-//        this.children.addAll(children)
-//    }
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         return children.associate {

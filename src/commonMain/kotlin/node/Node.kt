@@ -125,10 +125,12 @@ open class Node(
         if (this.value != other.value) {
             return false
         }
-        var areEqual = true
-        for (i in children.indices)
-            areEqual = children[i] == other.children[i]
-        return areEqual
+        for (i in children.indices) {
+            if (children[i] != other.children[i]) {
+                return false
+            }
+        }
+        return true
     }
 
     override fun hashCode(): Int {

@@ -15,7 +15,6 @@ class Meta(
         content["@position"] = position
         content["@file"] = symbolTable.getFileTable().filePath
         sendMessage(Message("debug", content))
-        // readLine()
         return NULL
     }
 }

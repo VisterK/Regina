@@ -12,10 +12,6 @@ class TokenDictionary(node: Token) : Token(
     node.std,
     node.children
 ) {
-//    init {
-//        this.children.clear()
-//        this.children.addAll(children)
-//    }
 
     override fun toNode(filePath: String): Node {
         return NodeDictionary(Node(symbol, value, position, children.map { it.toNode(filePath) }.toMutableList()))

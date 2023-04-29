@@ -126,12 +126,10 @@ class Index(
     override fun getPropertyName(): Node = (left as Assignable).getPropertyName()
 
     override fun findUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type, Assignment>? {
-        // find in index value
         val found = right.findUnassigned(symbolTable, parent)
         if (found != null) {
             return found
         }
-        // find in indexed value
         return left.findUnassigned(symbolTable, parent)
     }
 }

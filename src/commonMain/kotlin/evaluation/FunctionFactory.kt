@@ -57,7 +57,7 @@ object FunctionFactory {
             NULL
         }
         res["except"] = EmbeddedFunction("except", listOf("x")) { token, args ->
-            // TODO check that instances work properly. e.g. except(a())
+
             throw PositionalException(getIdent(token, "x", args).toString(), args.getFileTable().filePath, token)
         }
         res["input"] = EmbeddedFunction("input", listOf()) { _, _ -> readLine() }
@@ -157,7 +157,6 @@ object FunctionFactory {
                 listOf("first", "second"),
                 listOf("epsilon = 0.0000000000000000000000000001", "absTh = 0.0000001")
             ) { token, args ->
-                // https://stackoverflow.com/a/32334103
                 val first = getPNumber(args, token, "first").getPValue().toDouble()
                 val second = getPNumber(args, token, "second").getPValue().toDouble()
                 val epsilon = getPNumber(args, token, "epsilon").getPValue().toDouble()
@@ -200,7 +199,6 @@ object FunctionFactory {
             val deep = getPInt(args, token, "deep")
             val r = References()
             r.copy(instance)
-            // instance.copy(deep.getPValue() != 0)
         }
         return res
     }

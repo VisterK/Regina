@@ -102,7 +102,6 @@ open class Link(
                 return Optional(property)
             }
             is Index -> {
-                // TODO here get linked assignment should be done too
                 val indexToken = (children[index] as Index).getDeepestLeft()
                 if (indexToken is Call) return checkNextCall(findingUnresolved, variable, index, table, initialTable)
                 val property = variable.getPropertyOrNull(indexToken.value)
@@ -200,7 +199,6 @@ open class Link(
                     (children[index] as Constructor).evaluateType(type, initialTable).toVariable(children[index])
                 )
             }
-            // unary minus, (1+2).max(...)
             else -> {
                 if (!canBeFile)
                     throw PositionalException("Unexpected token", initialTable.getFileTable().filePath, children[index])
@@ -214,7 +212,6 @@ open class Link(
      */
     private fun addFile(table: SymbolTable): SymbolTable? {
         val fileTable = table.getImportOrNull(left.value) ?: return null
-        //  ?: throw PositionalException("Expected variable, object or package name", left)
         return table.changeFile(fileTable)
     }
 
@@ -237,14 +234,13 @@ open class Link(
             else table.getFileTable(),
             variableTable = table.getCurrentType(),
             resolvingType = ResolvingMode.FUNCTION
-        ) // table.changeScope(initialTable.getScope())
+        )
         (children[index] as Call).argumentsToParameters(function, initialTable, tableForEvaluation)
         val functionResult = (children[index] as Call).evaluateFunction(tableForEvaluation, function)
         return functionResult.toVariable(children[index])
     }
 
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
-        // hacky way, not good.
         val (_, currentParent, _, index) = safeEvaluate(
             parent ?: Type(
                 "@Fictive",
@@ -269,7 +265,7 @@ open class Link(
                 symbolTable,
                 assignment,
                 value.toProperty(assignment.right)
-            )//assign(assignment, currentParent, symbolTable, value)
+            )
         } else currentParent.setProperty(children.last().value, value.toProperty(assignment.right))
     }
 
@@ -284,7 +280,6 @@ open class Link(
         if (currentVariable is NullValue) {
             return Tuple4(NullValue(), currentVariable, null, index)
         }
-        // first variable in link is not assigned => there is no such property in class if assignment not found
         if (currentVariable == null) {
             return Tuple4(
                 null,
@@ -307,11 +302,9 @@ open class Link(
             if (res.value is NullValue) {
                 return Tuple4(NullValue(), currentVariable, null, index)
             }
-            // if property not yet assigned and assignment is found, return parent
             if (res.isGood && res.value is Assignment) {
                 return Tuple4(null, currentVariable, res.value, index)
             }
-            // property not assigned and assignment not found
             if (res.value !is Variable) {
                 return Tuple4(null, currentVariable, null, index)
             }
@@ -320,15 +313,11 @@ open class Link(
             currentVariable = res.value
             index++
         }
-        // Here index == children.size. Decrease it because index is number of the currentVariable token
-        // only there currentParent might be null if it's import link
         return Tuple4(currentVariable, currentParent, null, --index)
     }
 
     override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Pair<Type, Assignment?> {
         val (type, assignment) = getFirstUnassignedOrNull(parent, symbolTable)
-        // Happens if both type nad assignment are null.
-        // It means that it's import link with two children and Type of Function is imported => all is assigned
         if (type == null) {
             return Pair(parent, assignment)
         }
@@ -350,16 +339,9 @@ open class Link(
         if (currentParent != null && currentParent !is Type) {
             return Pair(null, null)
         }
-//            throw PositionalException(
-//                "Expected class instance, got ${mapToString(currentParent::class)}",
-//                symbolTable.getFileTable().filePath,
-//                children[index - 1]
-//            )
-        // left hand-side can be assigned if last link child is not assigned
         if (forLValue && index == children.lastIndex) {
             return Pair(parent, null)
         }
-        // nor assignment, nor property is found
         if (currentVariable == null && assignment == null && index < children.size) {
             return Pair(
                 parent,
@@ -378,8 +360,6 @@ open class Link(
             }
         }
         val (type, assignment) = getFirstUnassignedOrNull(parent, symbolTable)
-        // Happens if both type nad assignment are null.
-        // It means that it's import link with two children and Type of Function is imported => all is assigned
         if (type == null || assignment == null) {
             return null
         }

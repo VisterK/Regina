@@ -6,11 +6,11 @@ import node.Node
 open class Token(
     var symbol: String = "",
     var value: String = "",
-    val position: Pair<Int, Int> = Pair(0, 0),
+    val position: Pair<Int, Int> = 0 to 0,
     val bindingPower: Int = 0, // precedence priority
-    var nud: ((token: Token, parser: Parser) -> Token)? = null, // null denotation: values, prefix operators
-    var led: ((token: Token, parser: Parser, node2: Token) -> Token)? = null, // left denotation: infix and suffix operators
-    var std: ((token: Token, parser: Parser) -> Token)? = null, // statement denotation
+    var nud: ((Token, Parser) -> Token)? = null, // null denotation: values, prefix operators
+    var led: ((Token, Parser, Token) -> Token)? = null, // left denotation: infix and suffix operators
+    var std: ((Token, Parser) -> Token)? = null, // statement denotation
     val children: MutableList<Token> = mutableListOf()
 ) {
     val left: Token
@@ -18,11 +18,13 @@ open class Token(
     val right: Token
         get() = children[1]
 
-    open fun toNode(filePath: String): Node {
-        return Node(symbol = symbol, value = value, children = children.map { it.toNode(filePath) }.toMutableList())
-    }
+    open fun toNode(filePath: String): Node =
+        Node(
+            symbol = symbol,
+            value = value,
+            children = children.map { it.toNode(filePath) }.toMutableList()
+        )
 
-    override fun toString(): String {
-        return "$symbol:$value"
-    }
+    override fun toString(): String =
+        "$symbol:$value"
 }

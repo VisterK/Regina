@@ -53,7 +53,7 @@ class Assignment(
         return right.findUnassigned(symbolTable.changeVariable(parent), parent) ?: Pair(
             parent,
             null
-        ) // right.traverseUnresolvedOptional(symbolTable.changeVariable(parent), parent)
+        )
     }
 
     fun assign(parent: Type, symbolTable: SymbolTable) {

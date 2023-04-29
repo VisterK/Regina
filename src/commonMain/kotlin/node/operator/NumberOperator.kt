@@ -41,8 +41,6 @@ class NumberOperator(
             "<" -> (a < b).toPInt()
             ">=" -> (a >= b).toPInt()
             "<=" -> (a <= b).toPInt()
-            // never happens, because // is for comments
-            // "//" -> a / b
             else -> evaluateArithmeticOperators(a, b, this, symbolTable.getFileTable())
         }
     }

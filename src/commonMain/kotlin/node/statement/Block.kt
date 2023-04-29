@@ -31,49 +31,47 @@ class Block(node: Node) :
      * Method with duplicated code, but it is understandable
      */
     private fun evaluateForeach(symbolTable: SymbolTable): Any {
-        var (iterable, isRange) = getIterable(symbolTable)
-        if (isRange) {
-            iterable = (iterable as List<PInt>).map { it.getPValue() }
-            for (i in (if (iterable[0] < iterable[1]) iterable[0]..iterable[1] else iterable[0] downTo iterable[1])
-                step iterable[2]) {
-                symbolTable.addVariable(left.value, PInt(i).toVariable(left))
-                when (val res = children[2].evaluate(symbolTable)) {
-                    CycleStatement.CONTINUE -> continue
-                    CycleStatement.BREAK -> break
-                    !is Unit -> return res
-                }
-            }
+        val (iterable, isRange) = getIterable(symbolTable)
+        val sequence = if (isRange) {
+            val range = (iterable as List<PInt>).map { it.getPValue() }
+            generateSequence(range[0], { it -> (it + range[2]) % (range[1] + range[2]) % range[2] == 0 })
         } else {
-            for (i in iterable) {
-                symbolTable.addVariable(left.value, i!!.toVariable(left))
-                when (val res = children[2].evaluate(symbolTable)) {
-                    CycleStatement.CONTINUE -> continue
-                    CycleStatement.BREAK -> break
-                    !is Unit -> return res
-                }
+            iterable.asSequence()
+        }
+
+        for (value in sequence) {
+            symbolTable.addVariable(left.value, value.toVariable(left))
+            when (val res = children[2].evaluate(symbolTable)) {
+                CycleStatement.CONTINUE -> continue
+                CycleStatement.BREAK -> break
+                !is Unit -> return res
             }
         }
+
         return Unit
     }
 
+
     private fun getIterable(symbolTable: SymbolTable): Pair<Iterable<*>, Boolean> {
-        var iterable: Any = right.evaluate(symbolTable).toVariable(right)
-        if (right is Call && (right as Call).name.value == "range") {
-            return Pair((iterable as Primitive).getPValue() as Iterable<*>, true)
+        val evaluated = right.evaluate(symbolTable).toVariable(right)
+        val isRange = right is Call && (right as Call).name.value == "range"
+
+        val iterable = when {
+            isRange -> (evaluated as Primitive).getPValue() as Iterable<*>
+            evaluated !is Indexable || evaluated is PDictionary -> {
+                throw PositionalException(
+                    "Expected list, string, or range",
+                    symbolTable.getFileTable().filePath,
+                    right
+                )
+            }
+            evaluated is String -> evaluated.map { it.toString() }
+            else -> (evaluated as Primitive).getPValue()
         }
-        if (iterable !is Indexable || iterable is PDictionary) {
-            throw PositionalException(
-                "Expected list, string or range",
-                symbolTable.getFileTable().filePath,
-                right
-            )
-        }
-        iterable = (iterable as Primitive).getPValue()
-        if (iterable is String) {
-            iterable = iterable.map { it.toString() }
-        }
-        return Pair(iterable as Iterable<*>, false)
+
+        return Pair(iterable as Iterable<*>, isRange)
     }
+
 
     private fun evaluateCycle(symbolTable: SymbolTable): Any {
         val condition = left
@@ -103,31 +101,26 @@ class Block(node: Node) :
 
     private fun evaluateBlock(symbolTable: SymbolTable): Any {
         for (token in children) {
-            if (token is Block) {
-                if (token.value == "{") {
-                    throw PositionalException(
-                        "Block within a block. Maybe `if`, `else` or `while` was omitted?",
-                        symbolTable.getFileTable().filePath,
-                        token
-                    )
-                }
-                val res = token.evaluate(symbolTable)
-                if (res !is Unit) {
-                    return res
-                }
-            } else when (token.symbol) {
-                "return" -> {
-                    return if (token.children.size == 0) {
-                        Unit
-                    } else token.left.evaluate(symbolTable)
-                }
-                "break" -> return CycleStatement.BREAK
-                "continue" -> return CycleStatement.CONTINUE
+            val result = when {
+                token is Block && token.value == "{" -> throw PositionalException(
+                    "Block within a block. Maybe `if`, `else`, or `while` was omitted?",
+                    symbolTable.getFileTable().filePath,
+                    token
+                )
+                token.symbol == "return" -> if (token.children.isNotEmpty()) token.left.evaluate(symbolTable) else Unit
+                token.symbol == "break" -> CycleStatement.BREAK
+                token.symbol == "continue" -> CycleStatement.CONTINUE
+                token is Block -> token.evaluate(symbolTable)
                 else -> token.evaluate(symbolTable)
+            }
+
+            if (result !is Unit) {
+                return result
             }
         }
         return Unit
     }
+
 
     enum class CycleStatement {
         BREAK,

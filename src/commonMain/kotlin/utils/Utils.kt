@@ -73,61 +73,28 @@ object Utils {
     private fun createIdent(node: Node, name: String) = Node(symbol = name, value = name, position = node.position)
 
     fun getIdent(node: Node, name: String, args: SymbolTable) = args.getIdentifier(createIdent(node, name))
-    fun getPDictionary(args: SymbolTable, node: Node, name: String): PDictionary {
-        val dictionary = getIdent(node, name, args)
-        if (dictionary !is PDictionary) {
-            throw ExpectedTypeException(listOf(PDictionary::class), args.getFileTable().filePath, node, dictionary)
+    inline fun <reified T : Primitive> getPrimitive(args: SymbolTable, node: Node, name: String? = null): T {
+        val primitive = if (name == null) node.evaluate(args) else getIdent(node, name, args)
+        if (primitive !is T) {
+            throw ExpectedTypeException(listOf(T::class), args.getFileTable().filePath, node, primitive)
         }
-        return dictionary
+        return primitive
     }
 
-    fun getPList(args: SymbolTable, node: Node, name: String): PList {
-        val list = getIdent(node, name, args)
-        if (list !is PList) {
-            throw ExpectedTypeException(listOf(PList::class), args.getFileTable().filePath, node, list)
-        }
-        return list
-    }
+    fun getPDictionary(args: SymbolTable, node: Node, name: String) = getPrimitive<PDictionary>(args, node, name)
 
-    fun getPString(args: SymbolTable, node: Node, name: String): PString {
-        val str = getIdent(node, name, args)
-        if (str !is PString) {
-            throw ExpectedTypeException(listOf(PString::class), args.getFileTable().filePath, node, str)
-        }
-        return str
-    }
+    fun getPList(args: SymbolTable, node: Node, name: String) = getPrimitive<PList>(args, node, name)
 
-    fun getPNumber(args: SymbolTable, node: Node, name: String? = null): PNumber {
-        val num = if (name == null) node.evaluate(args) else getIdent(node, name, args)
-        if (num !is PNumber) {
-            throw ExpectedTypeException(listOf(PNumber::class), args.getFileTable().filePath, node, num)
-        }
-        return num
-    }
+    fun getPString(args: SymbolTable, node: Node, name: String) = getPrimitive<PString>(args, node, name)
 
-    fun getPInt(args: SymbolTable, node: Node, name: String): PInt {
-        val int = getIdent(node, name, args)
-        if (int !is PInt) {
-            throw ExpectedTypeException(listOf(PInt::class), args.getFileTable().filePath, node, int)
-        }
-        return int
-    }
+    fun getPNumber(args: SymbolTable, node: Node, name: String? = null) = getPrimitive<PNumber>(args, node, name)
 
-    fun getPDouble(args: SymbolTable, node: Node, name: String): PDouble {
-        val double = getIdent(node, name, args)
-        if (double !is PDouble) {
-            throw ExpectedTypeException(listOf(PDouble::class), args.getFileTable().filePath, node, double)
-        }
-        return double
-    }
+    fun getPInt(args: SymbolTable, node: Node, name: String) = getPrimitive<PInt>(args, node, name)
 
-    fun getInstance(args: SymbolTable, node: Node, name: String): Type {
-        val instance = getIdent(node, name, args)
-        if (instance !is Type) {
-            throw ExpectedTypeException(listOf(PInt::class), args.getFileTable().filePath, node, instance)
-        }
-        return instance
-    }
+    fun getPDouble(args: SymbolTable, node: Node, name: String) = getPrimitive<PDouble>(args, node, name)
+
+    fun getInstance(args: SymbolTable, node: Node, name: String) = getPrimitive<Type>(args, node, name)
+
 
     fun <T> List<T>.subList(start: Int): List<T> = this.subList(start, this.size)
 

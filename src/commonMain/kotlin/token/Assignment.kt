@@ -25,7 +25,7 @@ class Assignment(
         val nodeChildren = children.map { it.toNode(filePath) }.toMutableList()
         if (nodeChildren.first() is Identifier) {
             if (nodeChildren.first().value == "this") {
-                throw PositionalException("this is not assignable", "", nodeChildren.first()) // TODO filepath is empty
+                throw PositionalException("this is not assignable", "", nodeChildren.first())
             }
         }
         return Assignment(symbol, value, position, nodeChildren)

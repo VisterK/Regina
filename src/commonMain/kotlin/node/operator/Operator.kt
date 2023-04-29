@@ -45,7 +45,6 @@ open class Operator(
             return this.toString() + other.toString()
         }
         if (this is PNumber && other is PNumber) {
-            // to make MAX_VALUE + n equal to MIN_VALUE + n - 1
             return this + other
         } else throw PositionalException(
             "Operator not applicable to operands",

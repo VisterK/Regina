@@ -8,7 +8,6 @@ import table.FileTable
 import table.SymbolTable
 
 fun main(args: Array<String>) {
-    // eval(args[0], args.toList().subList(1, args.size))
     evaluate("a", args.toList().subList(1, args.size))
     val igc = ImportGraphCreator("a", getNodes("a"), listOf())
     // after

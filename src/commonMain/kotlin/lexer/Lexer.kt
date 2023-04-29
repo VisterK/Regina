@@ -85,13 +85,16 @@ class Lexer(val source: String = "", val filePath: String) {
 
     private fun createNextToken(): Token {
         consumeWhitespaceAndComments()
+
         if (index == source.length) {
             return registry.token("(EOF)", "(EOF)", position)
         }
+
         // go to next line symbol - to separate long expressions
         if (source[index] == '\\') {
             index++
             consumeWhitespaceAndComments()
+
             if (!isLineSeparator()) {
                 throw PositionalException(
                     "Expected new line after \\",
@@ -99,22 +102,24 @@ class Lexer(val source: String = "", val filePath: String) {
                     length = 1,
                     fileName = filePath
                 )
-            } else index = moveAfterLineSeparator()
-            consumeWhitespaceAndComments()
-            position = Pair(0, position.second + 1)
+            } else {
+                index = moveAfterLineSeparator()
+            }
+
+            position = 0 to (position.second + 1)
         }
-        return if (source[index] == '"') {
-            nextString()
-        } else if (isFirstIdentChar(source[index])) {
-            nextIdent()
-        } else if (source[index].isDigit()) {
-            nextNumber()
-        } else if (isOperatorChar(source[index])) {
-            nextOperator()
-        } else if (source[index] == '#') {
-            nextMeta()
-        } else throw PositionalException("Invalid character", position = position, length = 1, fileName = filePath)
+
+        val currentChar = source[index]
+        return when {
+            currentChar == '"' -> nextString()
+            isFirstIdentChar(currentChar) -> nextIdent()
+            currentChar.isDigit() -> nextNumber()
+            isOperatorChar(currentChar) -> nextOperator()
+            currentChar == '#' -> nextMeta()
+            else -> throw PositionalException("Invalid character", position = position, length = 1, fileName = filePath)
+        }
     }
+
 
     private fun nextMeta(): Token {
         val res = StringBuilder()

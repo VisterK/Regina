@@ -10,15 +10,13 @@ import properties.*
 import utils.Utils.toVariable
 
 class SymbolTable(
-    // during recursive evaluation multiple symbol tables are used, hence need different scopes, files and types
     private var scopeTable: ScopeTable? = ScopeTable(),
     private var variableTable: Variable? = null,
     private var fileTable: FileTable,
     var resolvingType: ResolvingMode
 ) {
 
-    companion object { // import a.b.c as imported
-        // imported.A() <- process
+    companion object {
         private val imports = mutableMapOf<FileTable, MutableMap<String, FileTable>>()
         val globalFile = initializeGlobal()
 

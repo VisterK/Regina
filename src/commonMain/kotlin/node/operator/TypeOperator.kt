@@ -38,36 +38,31 @@ class TypeOperator(
             "Number" -> checked is PNumber
             "Class" -> checked is Type
             "Primitive" -> checked is Primitive
-            else -> {
-                if (checked is Primitive || checked is Null) {
-                    return false
-                }
-                if (right !is Link && right !is Identifier) {
-                    throw PositionalException(
-                        "Currently `is` and `!is` expression support type and imported type on the right-hand side",
-                        symbolTable.getFileTable().filePath,
-                        right
-                    )
-                }
-                val type = if (right is Identifier) symbolTable.getUncopiedTypeOrNull(right) else getType(
-                    symbolTable,
-                    right as Link
-                )
-                if (checked is Type && checked !is Object &&
-                    type is Type && type !is Object &&
-                    checked.index != 0 &&
-                    type.index == 0
-                ) {
-                    return checked.inherits(type)
-                }
-                throw PositionalException(
-                    "Expected class instance or primitive as left operator and class name as right operator",
-                    symbolTable.getFileTable().filePath,
-                    this
-                )
-            }
+            else -> handleCustomTypeCheck(symbolTable, checked)
         }
     }
+
+    private fun handleCustomTypeCheck(symbolTable: SymbolTable, checked: Any): Boolean {
+        if (checked is Primitive || checked is Null) return false
+        if (right !is Link && right !is Identifier) {
+            throw PositionalException(
+                "Currently `is` and `!is` expression support type and imported type on the right-hand side",
+                symbolTable.getFileTable().filePath,
+                right
+            )
+        }
+        val type = if (right is Identifier) symbolTable.getUncopiedTypeOrNull(right) else getType(symbolTable, right as Link)
+        return if (checked is Type && checked !is Object && type is Type && type !is Object && checked.index != 0 && type.index == 0) {
+            checked.inherits(type)
+        } else {
+            throw PositionalException(
+                "Expected class instance or primitive as left operator and class name as right operator",
+                symbolTable.getFileTable().filePath,
+                this
+            )
+        }
+    }
+
 
     private fun getType(symbolTable: SymbolTable, link: Link): Type? {
         if (link.children.size != 2 || link.left !is Identifier || link.right !is Identifier) {

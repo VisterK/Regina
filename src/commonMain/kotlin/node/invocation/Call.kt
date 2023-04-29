@@ -34,7 +34,7 @@ class Call(
                 i++
             }
             return res
-        } // children.subList(1, children.size)
+        }
     val namedArgs: List<Assignment>
         get() = children.subList(unnamedArgs.size + 1, children.size) as List<Assignment>
 
@@ -93,9 +93,6 @@ class Call(
             paramTable.addVariable(i.key, i.value)
         argTable.resolvingType = argResolvingMode
         paramTable.resolvingType = paramResolvingMode
-        // TODO exceptions only to calls, not to params
-//        for ((index, arg) in arguments.withIndex())
-//            paramTable.addVariable(function.params[index].value, arg.evaluate(argTable).toVariable(arg))
     }
 
     private fun getParamName(index: Int, function: RFunction, fileTable: FileTable): String {
@@ -110,7 +107,6 @@ class Call(
         val res = if (function is EmbeddedFunction) {
             function.executeFunction(left, symbolTable)
         } else function.body.evaluate(symbolTable)
-        // this is because Unit variables are not allowed and in Links variable is assigned
         return if (res is Unit) NULL else res
     }
 }
